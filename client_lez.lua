@@ -210,7 +210,7 @@ function is_player_in_lez(plyr,actve)
     local in_lez = false
 
     -- Loop over each active LEZ, break if in one (no need to check others)
-    for i, lez_id in ipairs(actve)
+    for _, lez_id in ipairs(actve)
     do
 
         in_lez = inside_lez_check(plyr,lez_id)
@@ -287,9 +287,6 @@ function find_dist_to_nearest_lez(plyr,actve)
     -- Takes the player position and a list of active LEZ and Finds
     -- the closest LEZ and the distance to it
 
-    -- Nearest LEZ to player
-    local lez = 0
-
     -- Overall shortest distance to any LEZ
     local overall_shortest = 10000000
 
@@ -338,11 +335,6 @@ function find_dist_to_nearest_lez(plyr,actve)
     -- We now know the nearst LEZ and the square distance to it. Return the ID and the distance
     return closest_lez, math.sqrt(overall_shortest)
 end
-
-
-
-
-
 
 -- Define the LEZ boundary
 
