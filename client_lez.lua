@@ -11,25 +11,29 @@ them how much they have been fined.
 have left.
 ]]
 
+-- Global variables that may be useful elsewhere outside this local script --
+
+-- Choose which LEZs you want active
+active_lez = {1,2}
+
+-- Distance to nearest LEZ in which proximity warning will be shown
+lez_warning_dist = 100
+
+-- Is the player in an LEZ
+in_lez = false
+
+-- Which LEZ is the player in? 0 if not in an LEZ
+lez_id = 0
+
+-- Check if player has just entered an LEZ
+just_entered = false
+
+-- LEZ that the player was last in, 0 by default (has yet to enter an LEZ)
+recent_lez = 0
+
+-- End of global variables. Some local ones could be made global, if appropriate for your wider server needs --
+
 Citizen.CreateThread(function()
-
-    -- Choose which LEZs you want active
-    local active_lez = {1,2}
-
-    -- Distance to nearest LEZ in which proximity warning will be shown (not yet used)
-    local lez_warning_dist = 100
-
-    -- Is the player in an LEZ
-    local in_lez = false
-
-    -- Which LEZ is the player in? 0 if not in an LEZ
-    local lez_id = 0
-
-    -- Check if player has just entered an LEZ
-    local just_entered = false
-
-    -- LEZ that the player was last in
-    local recent_lez = 0
 
     -- Bulk of code
     while(true)
