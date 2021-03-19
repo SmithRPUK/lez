@@ -11,16 +11,6 @@ them how much they have been fined.
 have left.
 ]]
 
-function get_table_size(my_table)
-    --[[Helper function from:
-    https://stackoverflow.com/questions/2705793/how-to-get-number-of-entries-in-a-lua-table
-    Returns length of a table]]
-
-    local count = 0
-    for _ in pairs(my_table) do count = count + 1 end
-    return count
-end
-
 function lez_boundary_points(lez_no)
     -- helper function to return LEZ boundary points based on LEZ ID input
 
@@ -56,7 +46,7 @@ function inside_lez_check(plyr,lez_no)
         local B = {plyr[1]-10000,plyr[2]-10000}
 
         -- Now test each side of the LEZ for an intersection
-        local no_sides = get_table_size(lez_sides)
+        local no_sides = #lez_sides
 
         -- Counter for no interesects between AB and the LEZ boundary
         local no_crossings = 0
@@ -218,7 +208,7 @@ function find_dist_to_nearest_lez(plyr,actve)
         local lez_sides = lez_boundary_points(lez_id)
 
         -- Get the number of sides to this LEZ
-        local no_sides = get_table_size(lez_sides)
+        local no_sides = #lez_sides
 
         -- Shortest dist from player to this LEZ boundary
         local shortest_dist_to_lez = 10000000
