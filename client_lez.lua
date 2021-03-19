@@ -11,6 +11,101 @@ them how much they have been fined.
 have left.
 ]]
 
+Citizen.CreateThread(function()
+
+    -- Choose which LEZs you want active
+    local active_lez = {1,2}
+
+    -- Distance to nearest LEZ in which proximity warning will be shown (not yet used)
+    local lez_warning_dist = 100
+
+    -- Is the player in an LEZ
+    local in_lez = false
+
+    -- Which LEZ is the player in? 0 if not in an LEZ
+    local lez_id = 0
+
+    -- Check if player has just entered an LEZ
+    local just_entered = false
+
+    -- LEZ that the player was last in
+    local recent_lez = 0
+
+    -- Bulk of code
+    while(true)
+    do
+        -- Get player position
+        local player_ped = GetPlayerPed(-1)
+        local player_pos = GetEntityCoords(player_ped)
+
+        -- Check if player is in an LEZ
+        in_lez, lez_id = is_player_in_lez(player_pos,active_lez)
+
+        -- If in LEZ
+        if in_lez then
+
+            -- Check if player has just entered
+            if not just_entered then
+                TriggerEvent('chatMessage', '[LEZ]', {255,0,0}, 'You have just entered a LEZ.')
+
+                -- Tell server a player has just enetered this LEZ so they can be charged: TBA
+
+                -- Update that the player has just entered the LEZ. Remains true until the player has left the LEZ
+                -- in order to prevent continually telling the server the player is still in the LEZ (pointless communication)
+                just_entered = true
+
+                -- Record which LEZ the player has just entered, so that when they leave
+                -- this LEZ, the LEZ ID can still be passed to the server
+                recent_lez = lez_id
+            end
+
+            -- Wait a while (30s) before checking again
+            Citizen.Wait(30*1000)
+
+        -- If player not in LEZ, check again after 1s
+        else
+
+            -- Check if the player has just left an LEZ.
+            -- Ignore if recenet LEZ is 0 i.e. spawned outside an LEZ
+
+            if ( (just_entered) and (recent_lez > 0)) then
+                TriggerEvent('chatMessage', '[LEZ]', {255,0,0}, 'You have left the LEZ.')
+
+                -- Tell the server a player has just left the LEZ: TBA
+
+                -- Update that the player has just left the LEZ. Remains false until the player has entered the LEZ
+                -- in order to prevent continually telling the server the player is still outside the LEZ (pointless communication)
+                just_entered = false
+
+            end
+
+            -- Find the closest LEZ and the distance to it
+            local closest_lez
+            local dist_to_closest
+
+            closest_lez, dist_to_closest = find_dist_to_nearest_lez(player_pos,active_lez)
+
+            if dist_to_closest < lez_warning_dist then
+                TriggerEvent('chatMessage', '[LEZ]', {255,0,0}, 'Warning, you are within less than 100m of LEZ '..tostring(closest_lez)..', you will be charged if you enter.')
+
+                -- Close to an active LEZ, so increase check frequency (5s)
+                Citizen.Wait(5*1000)
+
+            else
+
+                TriggerEvent('chatMessage', '[LEZ]', {255,0,0}, 'You are more than 100m from an LEZ.')
+
+                -- Not clsoe to an LEZ, so check after a longer wait (60s)
+                Citizen.Wait(60*1000)
+
+            end
+
+        end
+
+    end
+
+end)
+
 function lez_boundary_points(lez_no)
     -- helper function to return LEZ boundary points based on LEZ ID input
 
@@ -244,100 +339,7 @@ function find_dist_to_nearest_lez(plyr,actve)
     return closest_lez, math.sqrt(overall_shortest)
 end
 
-Citizen.CreateThread(function()
 
-    -- Choose which LEZs you want active
-    local active_lez = {1,2}
-
-    -- Distance to nearest LEZ in which proximity warning will be shown (not yet used)
-    local lez_warning_dist = 100
-
-    -- Is the player in an LEZ
-    local in_lez = false
-
-    -- Which LEZ is the player in? 0 if not in an LEZ
-    local lez_id = 0
-
-    -- Check if player has just entered an LEZ
-    local just_entered = false
-
-    -- LEZ that the player was last in
-    local recent_lez = 0
-
-    -- Bulk of code
-    while(true)
-    do
-        -- Get player position
-        local player_ped = GetPlayerPed(-1)
-        local player_pos = GetEntityCoords(player_ped)
-
-        -- Check if player is in an LEZ
-        in_lez, lez_id = is_player_in_lez(player_pos,active_lez)
-
-        -- If in LEZ
-        if in_lez then
-
-            -- Check if player has just entered
-            if not just_entered then
-                TriggerEvent('chatMessage', '[LEZ]', {255,0,0}, 'You have just entered a LEZ.')
-
-                -- Tell server a player has just enetered this LEZ so they can be charged: TBA
-
-                -- Update that the player has just entered the LEZ. Remains true until the player has left the LEZ
-                -- in order to prevent continually telling the server the player is still in the LEZ (pointless communication)
-                just_entered = true
-
-                -- Record which LEZ the player has just entered, so that when they leave
-                -- this LEZ, the LEZ ID can still be passed to the server
-                recent_lez = lez_id
-            end
-
-            -- Wait a while (30s) before checking again
-            Citizen.Wait(30*1000)
-
-        -- If player not in LEZ, check again after 1s
-        else
-
-            -- Check if the player has just left an LEZ.
-            -- Ignore if recenet LEZ is 0 i.e. spawned outside an LEZ
-
-            if ( (just_entered) and (recent_lez > 0)) then
-                TriggerEvent('chatMessage', '[LEZ]', {255,0,0}, 'You have left the LEZ.')
-
-                -- Tell the server a player has just left the LEZ: TBA
-
-                -- Update that the player has just left the LEZ. Remains false until the player has entered the LEZ
-                -- in order to prevent continually telling the server the player is still outside the LEZ (pointless communication)
-                just_entered = false
-
-            end
-
-            -- Find the closest LEZ and the distance to it
-            local closest_lez
-            local dist_to_closest
-
-            closest_lez, dist_to_closest = find_dist_to_nearest_lez(player_pos,active_lez)
-
-            if dist_to_closest < lez_warning_dist then
-                TriggerEvent('chatMessage', '[LEZ]', {255,0,0}, 'Warning, you are within less than 100m of LEZ '..tostring(closest_lez)..', you will be charged if you enter.')
-
-                -- Close to an active LEZ, so increase check frequency (5s)
-                Citizen.Wait(5*1000)
-
-            else
-
-                TriggerEvent('chatMessage', '[LEZ]', {255,0,0}, 'You are more than 100m from an LEZ.')
-
-                -- Not clsoe to an LEZ, so check after a longer wait (60s)
-                Citizen.Wait(60*1000)
-
-            end
-
-        end
-
-    end
-
-end)
 
 
 
