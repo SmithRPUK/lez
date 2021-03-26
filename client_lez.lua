@@ -13,17 +13,14 @@ have left.
 
 -- Global variables that may be useful elsewhere outside this local script --
 
--- Choose which LEZs you want active
-print('config test')
-print(Config.test)
-
-active_lez = {1,2} --Config['active_lez']
+-- The active LEZs
+active_lez = Config['active_lez']
 
 -- Is the player in a vehicle?
 in_vehicle = false
 
 -- Distance to nearest LEZ in which proximity warning wsill be shown
-lez_warning_dist = 100
+lez_warning_dist = Config['lez_warning_dist']
 
 -- Is the player in an LEZ
 in_lez = false
@@ -75,8 +72,8 @@ Citizen.CreateThread(function()
                     recent_lez = lez_id
                 end
 
-                -- Wait a while (30s) before checking again
-                Citizen.Wait(30*1000)
+                -- Wait a while before checking again
+                Citizen.Wait(Config['in_lez_wait_time']*1000)
 
             -- If player not in LEZ, check again after 1s
             else
@@ -104,22 +101,22 @@ Citizen.CreateThread(function()
                 if dist_to_closest < lez_warning_dist then
                     TriggerEvent('chatMessage', '[LEZ]', {255,0,0}, 'Warning, you are within less than 100m of LEZ '..tostring(closest_lez)..', you will be charged if you enter.')
 
-                    -- Close to an active LEZ, so increase check frequency (5s)
-                    Citizen.Wait(5*1000)
+                    -- Close to an active LEZ, so increase check frequency
+                    Citizen.Wait(Config['near_lez_wait_time']*1000)
 
                 else
 
                     TriggerEvent('chatMessage', '[LEZ]', {255,0,0}, 'You are more than 100m from an LEZ.')
 
-                    -- Not clsoe to an LEZ, so check after a longer wait (60s)
-                    Citizen.Wait(60*1000)
+                    -- Not close to an LEZ, so check after a longer wait
+                    Citizen.Wait(Config['far_from_lez_wait_time']*1000)
 
                 end
 
             end
         else
             -- Player not in a vehicle, wait before checking if they get in one
-            Citizen.Wait(1*1000)
+            Citizen.Wait(Config['in_vehicle_wait_time']*1000)
         end
 
     end
@@ -355,11 +352,3 @@ function find_dist_to_nearest_lez(plyr,actve)
     -- We now know the nearst LEZ and the square distance to it. Return the ID and the distance
     return closest_lez, math.sqrt(overall_shortest)
 end
-
--- Define the LEZ boundary
-
--- legion square LEZ corners
--- sw : (80.48241, -1012.356, 19.16149)
--- nw : (161.0536, -790.5829, 31.01685)
--- ne : (316.6822, -835.5611, 29.09352)
--- se : (239.1377, -1068.672, 29.07787)
